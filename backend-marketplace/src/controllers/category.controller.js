@@ -1,0 +1,57 @@
+const { Category } = require("../models");
+
+exports.getAllCategories = async (req, res) => {
+  try {
+    const categories = await Category.findAll();
+    res.json({
+      success: true,
+      message: "Categorías obtenidas correctamente",
+      data: categories,
+    });
+  } catch (error) {
+    console.error("Error al obtener categorías:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error al obtener categorías",
+      data: null,
+    });
+  }
+};
+
+exports.createCategory = async (req, res) => {
+  try {
+    const { nombre } = req.body;
+
+    if (!nombre) {
+      return res.status(400).json({
+        success: false,
+        message: "El nombre es requerido",
+        data: null,
+      });
+    }
+
+    const existing = await Category.findOne({ where: { nombre } });
+    if (existing) {
+      return res.status(400).json({
+        success: false,
+        message: "Ya existe una categoría con ese nombre",
+        data: null,
+      });
+    }
+
+    const category = await Category.create({ nombre });
+
+    res.status(201).json({
+      success: true,
+      message: "Categoría creada correctamente",
+      data: category,
+    });
+  } catch (error) {
+    console.error("Error al crear categoría:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error al crear categoría",
+      data: null,
+    });
+  }
+};

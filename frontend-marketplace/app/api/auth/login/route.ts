@@ -6,11 +6,19 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 export async function POST(request: NextRequest) {
   const body = await request.json();
 
-  const backendRes = await fetch(`${API_URL}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+  let backendRes: Response;
+  try {
+    backendRes = await fetch(`${API_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    return NextResponse.json(
+      { success: false, message: 'No se pudo conectar con el servidor', data: null },
+      { status: 502 },
+    );
+  }
 
   const data = await backendRes.json();
 

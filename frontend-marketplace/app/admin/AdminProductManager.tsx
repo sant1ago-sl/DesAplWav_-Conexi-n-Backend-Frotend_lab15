@@ -7,14 +7,15 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 export default function AdminProductManager({
   initialProducts,
-  categories,
+  initialCategories,
   token,
 }: {
   initialProducts: Product[];
-  categories: Category[];
+  initialCategories: Category[];
   token: string | null;
 }) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [categories, setCategories] = useState<Category[]>(initialCategories);
   const [formData, setFormData] = useState({
     nombre: '',
     precio: '',
@@ -24,6 +25,8 @@ export default function AdminProductManager({
   });
   const [editingId, setEditingId] = useState<number | null>(null);
   const [error, setError] = useState('');
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [categoryError, setCategoryError] = useState('');
 
   const authHeaders: HeadersInit = {
     'Content-Type': 'application/json',
@@ -37,6 +40,33 @@ export default function AdminProductManager({
       if (data.success) setProducts(data.data);
     } catch (error) {
       console.error('Error:', error);
+    }
+  };
+
+  const handleCreateCategory = async () => {
+    const nombre = newCategoryName.trim();
+    setCategoryError('');
+
+    if (!nombre) return;
+
+    try {
+      const res = await fetch(`${API_URL}/categories`, {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({ nombre }),
+      });
+      const data: ApiResponse<Category> = await res.json();
+
+      if (res.ok && data.success) {
+        setCategories((prev) => [...prev, data.data]);
+        setFormData((prev) => ({ ...prev, categoryId: String(data.data.id) }));
+        setNewCategoryName('');
+      } else {
+        setCategoryError(data.message || 'No se pudo crear la categoría');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setCategoryError('Error de conexión con el servidor');
     }
   };
 
@@ -174,6 +204,26 @@ export default function AdminProductManager({
                     </option>
                   ))}
                 </select>
+
+                <div className="flex gap-2 mt-2">
+                  <input
+                    type="text"
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    placeholder="Nueva categoría..."
+                    className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 text-gray-900"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCreateCategory}
+                    className="px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors text-gray-600 whitespace-nowrap"
+                  >
+                    Agregar
+                  </button>
+                </div>
+                {categoryError && (
+                  <p className="text-xs text-red-600 mt-1">{categoryError}</p>
+                )}
               </div>
 
               <div>

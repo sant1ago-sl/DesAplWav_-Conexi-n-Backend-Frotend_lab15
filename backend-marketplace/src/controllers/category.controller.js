@@ -1,3 +1,4 @@
+const { fn, col, where: sqlWhere } = require("sequelize");
 const { Category } = require("../models");
 
 exports.getAllCategories = async (req, res) => {
@@ -20,7 +21,7 @@ exports.getAllCategories = async (req, res) => {
 
 exports.createCategory = async (req, res) => {
   try {
-    const { nombre } = req.body;
+    const nombre = req.body.nombre?.trim();
 
     if (!nombre) {
       return res.status(400).json({
@@ -30,7 +31,9 @@ exports.createCategory = async (req, res) => {
       });
     }
 
-    const existing = await Category.findOne({ where: { nombre } });
+    const existing = await Category.findOne({
+      where: sqlWhere(fn("LOWER", col("nombre")), nombre.toLowerCase()),
+    });
     if (existing) {
       return res.status(400).json({
         success: false,

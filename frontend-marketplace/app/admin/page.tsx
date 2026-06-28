@@ -43,7 +43,7 @@ export default async function AdminPage() {
   return (
     <AdminProductManager
       initialProducts={products}
-      categories={categories}
+      initialCategories={categories}
       token={token}
     />
   );
